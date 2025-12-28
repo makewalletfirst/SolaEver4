@@ -1,8 +1,8 @@
 # SolaEver4  <br>
 reward overflow fix  <br>
 (validator 500000000 -> 1epoch reward is 2^128 overflow <br>
-
-
+<br><br>
+일단은 대충 수정했고 reward를 강제 50000 으로 수정하는 방안도 고려<br>
 vi runtime/src/inflation_rewards/mod.rs 
 186     // The final unwrap is safe, as points_value.points is guaranteed to be non zero above.
 187     // 187라인 근처: 기존 expect 로직을 완전히 제거하고 unwrap_or로 교체
