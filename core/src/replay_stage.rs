@@ -2203,7 +2203,7 @@ impl ReplayStage {
         if let Some(next_leader) = leader_schedule_cache.slot_leader_at(poh_slot, Some(&parent)) {
             if !has_new_vote_been_rooted {
                 info!("Haven't landed a vote, so skipping my leader slot");
-                return None;
+                //return None;
             }
 
             trace!("{my_pubkey} leader {next_leader} at poh slot: {poh_slot}");

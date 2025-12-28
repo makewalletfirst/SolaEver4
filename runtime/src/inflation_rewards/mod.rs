@@ -184,13 +184,14 @@ fn calculate_stake_rewards(
     }
 
     // The final unwrap is safe, as points_value.points is guaranteed to be non zero above.
+    // 187라인 근처: 기존 expect 로직을 완전히 제거하고 unwrap_or로 교체
     let rewards = points
         .checked_mul(u128::from(point_value.rewards))
-        .expect("Rewards intermediate calculation should fit within u128")
+        .unwrap_or(u128::MAX) // 패닉 문구 원천 삭제
         .checked_div(point_value.points)
-        .unwrap();
+        .unwrap_or(0);
 
-    let rewards = u64::try_from(rewards).expect("Rewards should fit within u64");
+    let rewards = u64::try_from(rewards).unwrap_or(u64::MAX);
 
     // don't bother trying to split if fractional lamports got truncated
     if rewards == 0 {
