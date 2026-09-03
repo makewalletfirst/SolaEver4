@@ -1,0 +1,62 @@
+name: Agave Build
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+  # 깃허브 액션 러너의 디스크 공간 확보를 위해 불필요한 파일 정리 옵션 (선택사항)
+  # RUSTFLAGS: "-D warnings" # 경고를 에러로 처리하려면 주석 해제
+
+jobs:
+  build:
+    name: Build Agave Validator
+    runs-on: ubuntu-latest # 우분투 22.04 환경 사용
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install System Dependencies
+      # Agave 공식 문서에 명시된 필수 패키지 + Clang/LLVM 설치
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libssl-dev libudev-dev pkg-config zlib1g-dev \
+          llvm clang cmake make libprotobuf-dev protobuf-compiler \
+          libclang-dev
+
+    - name: Configure LLVM & Clang Paths
+      # 님께서 겪은 'clang-sys' 에러를 방지하기 위해 경로를 찾아 환경변수에 등록합니다.
+      run: |
+        echo "Searching for libclang.so..."
+        # 시스템에서 libclang.so 파일이 있는 경로를 찾습니다.
+        LIBCLANG_PATH=$(find /usr/lib -name "libclang.so*" -print -quit | xargs dirname)
+        
+        echo "Found path: $LIBCLANG_PATH"
+        echo "LIBCLANG_PATH=$LIBCLANG_PATH" >> $GITHUB_ENV
+        
+        # llvm-config 경로도 혹시 모르니 설정해줍니다.
+        LLVM_CONFIG_PATH=$(which llvm-config)
+        echo "LLVM_CONFIG_PATH=$LLVM_CONFIG_PATH" >> $GITHUB_ENV
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+
+    - name: Rust Cache
+      # Agave 빌드는 오래 걸리므로 캐시가 필수입니다. (2번째 빌드부터 빨라짐)
+      uses: Swatinem/rust-cache@v2
+
+    - name: Check Code (Fast Fail)
+      # 전체 빌드 전에 문법 오류만 빠르게 체크
+      run: cargo check --bin agave-validator
+
+    - name: Build Agave Validator (Release)
+      # 전체를 다 빌드하면 시간이 너무 오래 걸려 타임아웃 될 수 있으므로,
+      # 핵심인 agave-validator 바이너리만 타겟으로 빌드합니다.
+      run: cargo build --release --bin agave-validator

@@ -1,0 +1,16 @@
+#![cfg_attr(
+    not(feature = "agave-unstable-api"),
+    deprecated(
+        since = "3.1.0",
+        note = "This crate has been marked for formal inclusion in the Agave Unstable API. From \
+                v4.0.0 onward, the `agave-unstable-api` crate feature must be specified to \
+                acknowledge use of an interface that may break without warning."
+    )
+)]
+#![allow(clippy::arithmetic_side_effects)]
+pub mod cluster;
+pub mod cluster_tests;
+pub mod integration_tests;
+pub mod local_cluster;
+mod local_cluster_snapshot_utils;
+pub mod validator_configs;
